@@ -1,34 +1,53 @@
 /**
- * Main App Component
- * Provides tab navigation and dark mode toggle
+ * Main App Component - Enhanced with error boundaries and server connection handling
  */
 
 import React, { useState, useEffect } from 'react';
-import { Moon, Sun, FileSearch, Wand2, Github } from 'lucide-react';
+import { Moon, Sun, FileSearch, Wand2, Github, AlertCircle, CheckCircle2, Wifi } from 'lucide-react';
 import PlagiarismChecker from './components/PlagiarismChecker';
 import Humanizer from './components/Humanizer';
+import { checkHealth, ServerHealth } from './services/api';
 
 type Tab = 'plagiarism' | 'humanizer';
 
 function App() {
   const [activeTab, setActiveTab] = useState<Tab>('plagiarism');
   const [darkMode, setDarkMode] = useState(false);
+  const [serverStatus, setServerStatus] = useState<ServerHealth | null>(null);
+  const [serverError, setServerError] = useState<string>('');
 
-  // Initialize dark mode from localStorage
+  // Initialize dark mode and check server health
   useEffect(() => {
+    // Dark mode setup
     const isDark = localStorage.getItem('darkMode') === 'true';
     setDarkMode(isDark);
     if (isDark) {
       document.documentElement.classList.add('dark');
     }
+
+    // Check server health
+    checkServerHealth();
+    const healthInterval = setInterval(checkServerHealth, 30000); // Check every 30 seconds
+    return () => clearInterval(healthInterval);
   }, []);
+
+  const checkServerHealth = async () => {
+    try {
+      const health = await checkHealth();
+      setServerStatus(health);
+      setServerError('');
+    } catch (error: any) {
+      setServerStatus(null);
+      setServerError(error.message || 'Cannot connect to server');
+    }
+  };
 
   // Toggle dark mode
   const toggleDarkMode = () => {
     const newDarkMode = !darkMode;
     setDarkMode(newDarkMode);
     localStorage.setItem('darkMode', String(newDarkMode));
-    
+
     if (newDarkMode) {
       document.documentElement.classList.add('dark');
     } else {
@@ -39,10 +58,10 @@ function App() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 transition-colors duration-200">
       {/* Header */}
-      <header className="bg-white dark:bg-gray-800 shadow-lg border-b border-gray-200 dark:border-gray-700">
+      <header className="bg-white dark:bg-gray-800 shadow-lg border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
         <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex-1">
               <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 AI Plagiarism Detector & Humanizer
               </h1>
@@ -53,11 +72,12 @@ function App() {
 
             <div className="flex items-center gap-4">
               <a
-                href="https://github.com"
+                href="https://github.com/Dev-Lahrani/bookish-pancake"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 aria-label="GitHub"
+                title="View on GitHub"
               >
                 <Github className="w-6 h-6" />
               </a>
@@ -76,8 +96,25 @@ function App() {
             </div>
           </div>
 
+          {/* Server Status Indicator */}
+          <div className="mb-4 flex items-center gap-2">
+            {serverStatus ? (
+              <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
+                <Wifi className="w-4 h-4" />
+                <span>Server connected</span>
+                {serverStatus.apis.openai && <span className="px-2 py-1 bg-green-100 dark:bg-green-900 rounded text-xs">OpenAI ✓</span>}
+                {serverStatus.apis.anthropic && <span className="px-2 py-1 bg-green-100 dark:bg-green-900 rounded text-xs">Anthropic ✓</span>}
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
+                <AlertCircle className="w-4 h-4" />
+                <span>{serverError || 'Connecting...'}</span>
+              </div>
+            )}
+          </div>
+
           {/* Tab Navigation */}
-          <div className="flex gap-2 mt-6">
+          <div className="flex gap-2">
             <button
               onClick={() => setActiveTab('plagiarism')}
               className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all ${
@@ -105,6 +142,21 @@ function App() {
         </div>
       </header>
 
+      {/* Server Connection Warning */}
+      {serverError && (
+        <div className="bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800 px-4 py-3">
+          <div className="container mx-auto flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold text-red-800 dark:text-red-300">Server Connection Issue</p>
+              <p className="text-sm text-red-700 dark:text-red-400 mt-1">
+                {serverError}. Make sure to run <code className="bg-red-100 dark:bg-red-900 px-2 py-1 rounded">npm run dev</code> from the project root.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 max-w-7xl">
         {activeTab === 'plagiarism' ? <PlagiarismChecker /> : <Humanizer />}
@@ -118,7 +170,7 @@ function App() {
               Built with React, TypeScript, Tailwind CSS, Node.js, and AI APIs
             </p>
             <p className="mt-2">
-              <strong>Note:</strong> Configure your OpenAI or Anthropic API key in the server's .env file to enable humanization features.
+              Processing time shown for each analysis • Results are cached for 5 minutes
             </p>
           </div>
         </div>

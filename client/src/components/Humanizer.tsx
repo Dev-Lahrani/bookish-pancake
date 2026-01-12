@@ -1,9 +1,8 @@
 /**
- * Humanizer Component
- * Main component for humanizing AI-generated text
+ * Humanizer Component - Enhanced with better error handling and progress tracking
  */
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   Wand2,
   Copy,
@@ -13,6 +12,9 @@ import {
   XCircle,
   Settings,
   TrendingUp,
+  AlertCircle,
+  RotateCcw,
+  Clock,
 } from 'lucide-react';
 import TextComparison from './TextComparison';
 import { humanizeText, HumanizationOptions, HumanizationResult } from '../services/api';
@@ -23,6 +25,7 @@ const Humanizer: React.FC = () => {
   const [result, setResult] = useState<HumanizationResult | null>(null);
   const [error, setError] = useState<string>('');
   const [copied, setCopied] = useState(false);
+  const [humanizeHistory, setHumanizeHistory] = useState<HumanizationResult[]>([]);
 
   const [options, setOptions] = useState<HumanizationOptions>({
     tone: 'professional',
@@ -31,7 +34,7 @@ const Humanizer: React.FC = () => {
     addPersonalTouches: false,
   });
 
-  const handleHumanize = async () => {
+  const handleHumanize = useCallback(async () => {
     if (text.trim().length < 50) {
       setError('Please enter at least 50 characters of text to humanize.');
       return;
@@ -39,17 +42,18 @@ const Humanizer: React.FC = () => {
 
     setLoading(true);
     setError('');
-    setResult(null);
 
     try {
       const humanizationResult = await humanizeText(text, options);
       setResult(humanizationResult);
+      setHumanizeHistory([humanizationResult, ...humanizeHistory.slice(0, 4)]);
     } catch (err: any) {
-      setError(err.message || 'Humanization failed. Please try again.');
+      setError(err.message || 'Humanization failed. Please check your API key and try again.');
+      console.error('Humanization error:', err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [text, options, humanizeHistory]);
 
   const handleCopy = async () => {
     if (result?.humanizedText) {
@@ -66,16 +70,35 @@ const Humanizer: React.FC = () => {
     }
   };
 
+  const handleReset = () => {
+    setText('');
+    setResult(null);
+    setError('');
+  };
+
+  const wordCount = text.trim().split(/\s+/).length;
+
   return (
     <div className="space-y-6">
       {/* Input Section */}
       <div className="card">
-        <div className="flex items-center gap-3 mb-4">
-          <Wand2 className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-          <h2 className="text-2xl font-bold">AI Text Humanizer</h2>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <Wand2 className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+            <h2 className="text-2xl font-bold">AI Text Humanizer</h2>
+          </div>
+          {result && (
+            <button
+              onClick={handleReset}
+              className="flex items-center gap-2 text-sm px-3 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Reset
+            </button>
+          )}
         </div>
         <p className="text-gray-600 dark:text-gray-400 mb-4">
-          Transform AI-generated text into natural, human-sounding content.
+          Transform AI-generated text into natural, human-sounding content using advanced language models.
         </p>
 
         <textarea
@@ -83,10 +106,18 @@ const Humanizer: React.FC = () => {
           placeholder="Paste AI-generated text here (minimum 50 characters)..."
           value={text}
           onChange={(e) => setText(e.target.value)}
+          disabled={loading}
         />
 
         <div className="flex items-center justify-between mt-4">
-          <span className="text-sm text-gray-500">{text.length} characters</span>
+          <span className="text-sm text-gray-500">
+            {text.length} characters · {wordCount} words
+            {text.trim().length > 0 && text.trim().length < 50 && (
+              <span className="ml-2 text-yellow-600 dark:text-yellow-400">
+                Need {50 - text.trim().length} more characters
+              </span>
+            )}
+          </span>
 
           <button
             className="btn-primary flex items-center gap-2"
@@ -108,9 +139,12 @@ const Humanizer: React.FC = () => {
         </div>
 
         {error && (
-          <div className="mt-4 p-4 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg flex items-center gap-2 text-red-700 dark:text-red-400">
-            <XCircle className="w-5 h-5" />
-            <span>{error}</span>
+          <div className="mt-4 p-4 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded-lg flex items-start gap-2 text-red-700 dark:text-red-400">
+            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold">Humanization Error</p>
+              <p className="text-sm mt-1">{error}</p>
+            </div>
           </div>
         )}
       </div>
@@ -135,20 +169,20 @@ const Humanizer: React.FC = () => {
                 setOptions({ ...options, tone: e.target.value as HumanizationOptions['tone'] })
               }
             >
-              <option value="casual">Casual - Conversational and relaxed</option>
-              <option value="professional">Professional - Clear and business-like</option>
-              <option value="academic">Academic - Scholarly and analytical</option>
-              <option value="creative">Creative - Vivid and engaging</option>
+              <option value="casual">🗣️ Casual - Conversational and relaxed</option>
+              <option value="professional">💼 Professional - Clear and business-like</option>
+              <option value="academic">📚 Academic - Scholarly and analytical</option>
+              <option value="creative">✨ Creative - Vivid and engaging</option>
             </select>
           </div>
 
           {/* Intensity Slider */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Intensity: {options.intensity.charAt(0).toUpperCase() + options.intensity.slice(1)}
+              Intensity: <span className="font-bold">{options.intensity.charAt(0).toUpperCase() + options.intensity.slice(1)}</span>
             </label>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-500">Light</span>
+              <span className="text-sm text-gray-500 min-w-fit">Light</span>
               <input
                 type="range"
                 min="0"
@@ -165,15 +199,15 @@ const Humanizer: React.FC = () => {
                 }}
                 className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
               />
-              <span className="text-sm text-gray-500">Aggressive</span>
+              <span className="text-sm text-gray-500 min-w-fit">Aggressive</span>
             </div>
             <p className="text-xs text-gray-500 mt-2">
               {options.intensity === 'light' &&
-                'Minimal changes, focus on removing obvious AI patterns'}
+                '✓ Minimal changes, focus on removing obvious AI patterns'}
               {options.intensity === 'medium' &&
-                'Moderate restructuring, add noticeable personality'}
+                '✓ Moderate restructuring, add noticeable personality'}
               {options.intensity === 'aggressive' &&
-                'Extensive rewriting, maximum humanization'}
+                '✓ Extensive rewriting, maximum humanization'}
             </p>
           </div>
 
@@ -189,7 +223,7 @@ const Humanizer: React.FC = () => {
                 className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
               />
               <span className="text-sm text-gray-700 dark:text-gray-300">
-                Preserve technical terms
+                🔧 Preserve technical terms
               </span>
             </label>
 
@@ -203,7 +237,7 @@ const Humanizer: React.FC = () => {
                 className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
               />
               <span className="text-sm text-gray-700 dark:text-gray-300">
-                Add personal touches
+                💭 Add personal touches
               </span>
             </label>
           </div>
@@ -213,9 +247,19 @@ const Humanizer: React.FC = () => {
       {/* Results Section */}
       {result && (
         <>
+          {/* Processing Time */}
+          {result.processingTime && (
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 flex items-center gap-2">
+              <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              <span className="text-blue-700 dark:text-blue-300">
+                Text humanized in {result.processingTime}ms
+              </span>
+            </div>
+          )}
+
           {/* Statistics */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="card">
+            <div className="card hover:shadow-lg transition-shadow">
               <div className="flex items-center gap-3">
                 <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-lg">
                   <TrendingUp className="w-6 h-6 text-blue-600 dark:text-blue-400" />
@@ -225,11 +269,14 @@ const Humanizer: React.FC = () => {
                     {result.statistics.wordsChanged}
                   </div>
                   <div className="text-sm text-gray-600 dark:text-gray-400">Words Changed</div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    ~{Math.round((result.statistics.wordsChanged / wordCount) * 100)}% of total
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="card">
+            <div className="card hover:shadow-lg transition-shadow">
               <div className="flex items-center gap-3">
                 <div className="p-3 bg-green-100 dark:bg-green-900 rounded-lg">
                   <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
@@ -241,11 +288,14 @@ const Humanizer: React.FC = () => {
                   <div className="text-sm text-gray-600 dark:text-gray-400">
                     Sentence Variations
                   </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    Structure diversified
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="card">
+            <div className="card hover:shadow-lg transition-shadow">
               <div className="flex items-center gap-3">
                 <div className="p-3 bg-purple-100 dark:bg-purple-900 rounded-lg">
                   <Wand2 className="w-6 h-6 text-purple-600 dark:text-purple-400" />
@@ -255,6 +305,9 @@ const Humanizer: React.FC = () => {
                     {result.statistics.aiPhrasesRemoved}
                   </div>
                   <div className="text-sm text-gray-600 dark:text-gray-400">AI Phrases Removed</div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    Replaced with natural language
+                  </div>
                 </div>
               </div>
             </div>
@@ -263,14 +316,17 @@ const Humanizer: React.FC = () => {
           {/* Patterns Removed */}
           {result.patternsRemoved.length > 0 && (
             <div className="card">
-              <h3 className="text-lg font-semibold mb-3">AI Patterns Removed</h3>
+              <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-green-600" />
+                AI Patterns Removed
+              </h3>
               <div className="flex flex-wrap gap-2">
                 {result.patternsRemoved.map((pattern, index) => (
                   <span
                     key={index}
-                    className="px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full text-sm"
+                    className="px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full text-sm font-medium"
                   >
-                    "{pattern}"
+                    ✓ "{pattern}"
                   </span>
                 ))}
               </div>
