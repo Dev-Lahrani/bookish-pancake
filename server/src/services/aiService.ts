@@ -103,7 +103,7 @@ async function humanizeWithOpenAI(prompt: string): Promise<string> {
   }
   
   const response = await openai.chat.completions.create({
-    model: 'gpt-4-turbo-preview',
+    model: 'gpt-4o', // Using latest GPT-4 model (gpt-4o)
     messages: [
       {
         role: 'system',
@@ -201,7 +201,7 @@ ${text}`;
     
     if (service === 'openai' && openai) {
       const completion = await openai.chat.completions.create({
-        model: 'gpt-4-turbo',
+        model: 'gpt-4o', // Using latest GPT-4 model (gpt-4o)
         messages: [
           {
             role: 'system',

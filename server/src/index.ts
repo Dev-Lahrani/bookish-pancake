@@ -14,6 +14,7 @@ import humanizeRoutes from './routes/humanize';
 import advancedAnalyzeRoutes from './routes/advancedAnalyze';
 import advancedHumanizeRoutes from './routes/advancedHumanize';
 import pdfAnalyzeRoutes from './routes/pdfAnalyze';
+import reportRoutes from './routes/reportRoutes';
 
 // Load environment variables from root .env file
 // Try multiple paths to support both ts-node dev and compiled dist
@@ -111,6 +112,9 @@ app.use('/api/analyze-pdf', upload.single('file'), pdfAnalyzeRoutes);
 app.use('/api/batch-analyze', pdfAnalyzeRoutes);
 app.use('/api/history', pdfAnalyzeRoutes);
 app.use('/api/statistics', pdfAnalyzeRoutes);
+
+// Report generation and download routes
+app.use('/api', reportRoutes);
 
 // 404 handler
 app.use((req: express.Request, res: express.Response) => {
