@@ -15,52 +15,60 @@ export function buildHumanizationPrompt(text: string, options: HumanizationOptio
   const toneInstructions = getToneInstructions(options.tone);
   const intensityInstructions = getIntensityInstructions(options.intensity);
   
-  const prompt = `Rewrite the following text to sound naturally human-written while maintaining its core message and information.
+  const prompt = `You're a human writer rewriting this text to completely bypass AI detection (GPTZero, Originality.ai, StealthWriter). Make it 100% undetectable.
 
-CRITICAL REQUIREMENTS:
-1. Add natural imperfections:
-   - Use contractions (it's, don't, can't, etc.)
-   - Include casual transitions and fillers where appropriate
-   - Vary punctuation naturally (mix commas, dashes, semicolons)
-   - Allow for minor grammatical variations
+🚫 BANNED AI PHRASES - NEVER USE THESE:
+delve, tapestry, landscape, realm, testament, robust, leverage, facilitate, streamline, paradigm, synergy, holistic, 
+multifaceted, comprehensive, innovative, cutting-edge, state-of-the-art, groundbreaking, revolutionary, game-changing,
+it's important to note, it's worth noting, in conclusion, in summary, furthermore, moreover, additionally, consequently,
+in today's digital age, in the modern era, the fact that, the reality is, at the end of the day
 
-2. Dramatically vary sentence structure:
-   - Mix very short sentences (3-5 words) with long, complex ones (25+ words)
-   - Use different sentence types (declarative, interrogative, exclamatory)
-   - Start sentences differently (avoid repetitive patterns)
-   - Create uneven paragraph lengths
+✅ MANDATORY TECHNIQUES:
+1. EXTREME sentence variation:
+   - Minimum: 3 very short sentences (2-5 words). Maximum: 2+ very long sentences (35+ words)
+   - Mix fragments. Complete thoughts. Run-ons with commas.
+   - Start with different words: But, So, And, Now, Well, Actually, Look, Here's the thing
+   - Use punctuation variety: periods, dashes — em dashes too, ellipses..., semicolons;
 
-3. Remove AI-typical phrases and replace with natural alternatives:
-   - Replace "it's important to note that" → use direct statements
-   - Replace "delve into" → use "explore", "look at", "examine"
-   - Remove "furthermore", "moreover" → use simpler transitions
-   - Avoid "realm of", "landscape of", "tapestry" metaphors
-   - Remove "in today's digital age" and similar clichés
+2. ADD human errors/imperfections:
+   - Contractions EVERYWHERE (don't, won't, can't, it's, you're, we're, they're, should've, could've)
+   - Filler words: actually, basically, really, pretty much, kind of, sort of, just, honestly
+   - Casual connectors: but, so, and, anyway, now, well, plus
+   - Colloquialisms: stuff, things, a bunch of, tons of, loads of
 
-4. Add unexpected elements:
-   - Use surprising word choices occasionally
-   - Include brief examples or analogies
-   - Add rhetorical questions where appropriate
-   - Use active voice predominantly
-
-5. Tone and Style (${options.tone}):
+3. INJECT personality (${options.tone} style):
 ${toneInstructions}
+   - Add opinions: "I think", "seems to me", "in my view", "personally"
+   - Brief tangents or asides (in parentheses or with dashes)
+   - Rhetorical questions: "What does this mean?", "Why does it matter?"
+   - Direct address: "you", "we", "let's"
 
-6. Humanization Intensity (${options.intensity}):
+4. RESTRUCTURE completely:
+   - Change word order dramatically
+   - Split long sentences → fragments
+   - Combine short sentences → complex ones
+   - Move ideas around (conclusion first, then explanation)
+   - Use different voice: passive ↔ active
+
+5. Intensity Level (${options.intensity}):
 ${intensityInstructions}
 
-${options.preserveTechnical ? '7. PRESERVE all technical terms, jargon, and specialized vocabulary exactly as written.\n' : ''}
-${options.addPersonalTouches ? '8. ADD brief personal touches like "I think", "in my experience", or casual observations where natural.\n' : ''}
+6. VARY paragraph structure:
+   - One-sentence paragraphs for impact.
+   - Then longer paragraphs with 5-7 sentences that flow together with different structures and ideas building on each other naturally.
+   - Mix it up constantly.
 
-IMPORTANT: 
-- DO NOT add explanations or meta-commentary
-- DO NOT use phrases like "Here's the rewritten version"
-- ONLY return the humanized text itself
-- Ensure the rewritten text is substantially different from the original
-- Maintain all factual information and key points
+${options.preserveTechnical ? '⚠️ PRESERVE technical terms/jargon exactly.\n' : ''}
+${options.addPersonalTouches ? '💡 ADD personal touches: brief stories, observations, "in my experience", casual asides.\n' : ''}
 
-Original text to humanize:
+📝 CRITICAL:
+- Rewrite EVERYTHING - change 80%+ of wording
+- Make it sound like a human wrote it casually
+- NO AI-typical formal structure
+- NO explanations/meta-commentary
+- ONLY output the rewritten text
 
+Original text:
 ${text}`;
 
   return prompt;
@@ -74,35 +82,39 @@ ${text}`;
 function getToneInstructions(tone: string): string {
   switch (tone) {
     case 'casual':
-      return `   - Use conversational language and informal expressions
-   - Include colloquialisms and everyday phrases
-   - Write as if talking to a friend
-   - Use "you" to address the reader directly
-   - Keep it relaxed and approachable`;
+      return `   - Write like you're texting a friend
+   - Use slang, colloquialisms: "stuff", "things", "a bunch of", "tons of", "pretty much"
+   - Contractions in EVERY sentence possible
+   - Start sentences with: But, So, And, Plus, Also, Anyway
+   - Super relaxed: "honestly", "like", "you know", "I mean"
+   - Questions to reader: "Right?", "You know what I mean?", "Make sense?"`;
     
     case 'professional':
-      return `   - Maintain professional vocabulary
-   - Use clear, direct business language
-   - Keep formality balanced (not too stiff)
-   - Focus on clarity and precision
-   - Avoid overly casual expressions`;
+      return `   - Clear, direct — but still human
+   - Use contractions: "we're", "it's", "don't", "won't"
+   - Avoid corporate jargon (synergy, leverage, etc.)
+   - Short sentences. Then longer explanatory ones.
+   - Active voice mostly
+   - Personal but professional: "I think", "we've found", "in our experience"`;
     
     case 'academic':
-      return `   - Use scholarly tone but avoid excessive formality
-   - Include analytical language where appropriate
-   - Maintain intellectual rigor
-   - Use discipline-appropriate terminology
-   - Balance formality with readability`;
+      return `   - Scholarly but readable (not AI-stiff)
+   - Use "we" not "it is noted that"
+   - Mix complex and simple sentences
+   - Contractions okay: "we're", "it's", "don't"
+   - Questions for engagement: "What does this mean?", "Why matters?"
+   - Direct: "This shows..." not "It can be observed that..."`;
     
     case 'creative':
-      return `   - Use vivid, descriptive language
-   - Include metaphors and creative comparisons (but not AI clichés)
-   - Vary rhythm and pacing dramatically
-   - Use sensory details
-   - Make it engaging and imaginative`;
+      return `   - Vivid, punchy language
+   - Real metaphors (not AI clichés like "tapestry")
+   - Sentence fragments for drama. Like this. Powerful.
+   - Sensory words, unexpected comparisons
+   - Vary rhythm wildly: short. Medium length. Then something much longer that flows and builds.
+   - Make it memorable and engaging`;
     
     default:
-      return '   - Use natural, balanced language';
+      return '   - Natural, conversational, human tone';
   }
 }
 
@@ -114,28 +126,31 @@ function getToneInstructions(tone: string): string {
 function getIntensityInstructions(intensity: string): string {
   switch (intensity) {
     case 'light':
-      return `   - Make minimal changes to structure
-   - Focus primarily on removing obvious AI phrases
-   - Keep most sentences similar to original
-   - Change 20-30% of the text
-   - Maintain original flow mostly intact`;
+      return `   - Change 40-50% of text (minimum to bypass detection)
+   - Remove all AI-typical phrases
+   - Add contractions and casual transitions
+   - Mix sentence lengths (short + long)
+   - Keep core structure recognizable`;
     
     case 'medium':
-      return `   - Moderate restructuring of sentences
-   - Add noticeable personality and variation
-   - Change sentence patterns significantly
-   - Change 40-60% of the text
-   - Balance preservation with transformation`;
+      return `   - Change 65-75% of text
+   - Completely restructure most sentences
+   - Add personality and casual tone
+   - Inject filler words and contractions heavily
+   - Use fragments and varied punctuation
+   - Make it conversational and natural`;
     
     case 'aggressive':
-      return `   - Extensively rewrite and restructure
-   - Maximum humanization and personality
-   - Completely rework sentence patterns
-   - Change 70-90% of the text
-   - Prioritize human-like quality over similarity`;
+      return `   - Change 85-95% of text (maximum humanization)
+   - Completely rewrite - barely recognizable
+   - Maximum personality injection
+   - Tons of contractions, fillers, casual language
+   - Fragments everywhere. Short punchy sentences. Then long rambling ones with commas.
+   - Add opinions, questions, asides
+   - Write like you're explaining to a friend over coffee`;
     
     default:
-      return '   - Apply moderate humanization';
+      return '   - Apply heavy humanization (70%+ changes)';
   }
 }
 
@@ -285,20 +300,45 @@ export function localHumanize(text: string, options: HumanizationOptions): strin
   let result = text;
   const intensity = options.intensity === 'aggressive' ? 3 : options.intensity === 'medium' ? 2 : 1;
   
-  // Phase 1: Replace common AI phrases
+  // Phase 1: AGGRESSIVELY replace AI-typical phrases (expanded list)
   const aiPhrases: { [key: string]: string[] } = {
-    "it's important to note that": ["note that", "it's worth noting"],
-    "in today's digital age": ["nowadays", "these days", "in modern times"],
-    "the landscape of": ["the world of", "in"],
-    "realm of": ["world of", "area of"],
-    "furthermore": ["also", "plus"],
-    "moreover": ["additionally", "also"],
-    "delve into": ["explore", "look at"],
-    "significantly": ["a lot", "greatly"],
-    "indicates that": ["shows", "means"],
+    "it's important to note that": ["look", "here's the thing", "basically", "check this out"],
+    "it is important to note that": ["note", "remember", "here's what matters"],
+    "in today's digital age": ["nowadays", "these days", "now", "right now"],
+    "in the modern era": ["today", "currently", "now"],
+    "the landscape of": ["the world of", "in", "when it comes to"],
+    "realm of": ["world of", "area of", "field of"],
+    "tapestry of": ["mix of", "combination of", "blend of"],
+    "furthermore": ["plus", "also", "and", "on top of that"],
+    "moreover": ["also", "plus", "and", "what's more"],
+    "additionally": ["also", "plus", "and", "on top of that"],
+    "consequently": ["so", "that's why", "because of this"],
+    "therefore": ["so", "that's why", "which means"],
+    "delve into": ["look at", "check out", "explore", "dig into"],
+    "significantly": ["a lot", "really", "pretty much", "way more"],
+    "substantially": ["a lot", "really", "way more"],
+    "indicates that": ["shows", "means", "tells us"],
+    "demonstrates that": ["shows", "proves", "means"],
+    "it can be seen that": ["you can see", "clearly"],
+    "it is evident that": ["clearly", "obviously", "you can see"],
     "utilizes": ["uses"],
     "utilize": ["use"],
-    "facilitate": ["help with", "enable"],
+    "facilitate": ["help", "make easier", "allow"],
+    "robust": ["strong", "solid", "powerful"],
+    "leverage": ["use", "tap into", "make use of"],
+    "paradigm": ["model", "approach", "way"],
+    "synergy": ["teamwork", "working together"],
+    "holistic": ["complete", "whole", "full"],
+    "multifaceted": ["complex", "many-sided"],
+    "comprehensive": ["complete", "full", "thorough"],
+    "innovative": ["new", "fresh", "creative"],
+    "cutting-edge": ["latest", "new", "modern"],
+    "state-of-the-art": ["latest", "modern", "top-notch"],
+    "groundbreaking": ["new", "revolutionary", "game-changing"],
+    "at the end of the day": ["basically", "in the end", "ultimately"],
+    "the fact that": ["that", ""],
+    "in order to": ["to"],
+    "due to the fact that": ["because", "since"],
   };
   
   for (const [phrase, replacements] of Object.entries(aiPhrases)) {
@@ -309,18 +349,38 @@ export function localHumanize(text: string, options: HumanizationOptions): strin
     }
   }
   
-  // Phase 2: Add contractions
+  // Phase 2: Add contractions EVERYWHERE
   result = result.replace(/ is not /gi, " isn't ");
+  result = result.replace(/ are not /gi, " aren't ");
   result = result.replace(/ do not /gi, " don't ");
   result = result.replace(/ does not /gi, " doesn't ");
+  result = result.replace(/ did not /gi, " didn't ");
   result = result.replace(/ can not /gi, " can't ");
+  result = result.replace(/ cannot /gi, " can't ");
+  result = result.replace(/ could not /gi, " couldn't ");
+  result = result.replace(/ would not /gi, " wouldn't ");
+  result = result.replace(/ should not /gi, " shouldn't ");
   result = result.replace(/ will not /gi, " won't ");
   result = result.replace(/ have not /gi, " haven't ");
+  result = result.replace(/ has not /gi, " hasn't ");
+  result = result.replace(/ had not /gi, " hadn't ");
   result = result.replace(/ it is /gi, " it's ");
   result = result.replace(/ that is /gi, " that's ");
+  result = result.replace(/ there is /gi, " there's ");
+  result = result.replace(/ what is /gi, " what's ");
+  result = result.replace(/ who is /gi, " who's ");
+  result = result.replace(/ we are /gi, " we're ");
+  result = result.replace(/ they are /gi, " they're ");
+  result = result.replace(/ you are /gi, " you're ");
   result = result.replace(/ we have /gi, " we've ");
+  result = result.replace(/ they have /gi, " they've ");
+  result = result.replace(/ you have /gi, " you've ");
+  result = result.replace(/ I have /gi, " I've ");
+  result = result.replace(/ I will /gi, " I'll ");
+  result = result.replace(/ you will /gi, " you'll ");
+  result = result.replace(/ we will /gi, " we'll ");
   
-  // Phase 3: Break up long sentences and add variety
+  // Phase 3: Add casual transitions and fillers (intensity-dependent)
   if (intensity >= 2) {
     const sentences = result.split(/([.!?])\s+/);
     let modified: string[] = [];
@@ -328,22 +388,20 @@ export function localHumanize(text: string, options: HumanizationOptions): strin
     for (let i = 0; i < sentences.length; i += 2) {
       let sentence = sentences[i].trim();
       
-      if (sentence.length > 20) {
-        // Randomly add transition words at start
+      if (sentence.length > 15) {
+        // Add transition words at start (50% chance)
         if (Math.random() > 0.5) {
-          const transitions = ["Well, ", "Look, ", "Actually, ", "Honestly, ", "You see, "];
-          sentence = transitions[Math.floor(Math.random() * transitions.length)] + sentence;
+          const transitions = ["But ", "So ", "And ", "Well, ", "Look, ", "Now, ", "Actually, ", "Honestly, ", "Plus, ", "Anyway, "];
+          sentence = transitions[Math.floor(Math.random() * transitions.length)] + sentence.charAt(0).toLowerCase() + sentence.slice(1);
         }
         
-        // Sometimes move adverbs around
-        if (Math.random() > 0.6) {
-          sentence = sentence.replace(/^(([A-Z][a-z]+\s)+)/, (match) => {
-            const words = match.trim().split(' ');
-            if (words.length > 2) {
-              return words.slice(1).join(' ') + ' ' + words[0] + ', ';
-            }
-            return match;
-          });
+        // Add filler words (30% chance)
+        if (Math.random() > 0.7 && intensity >= 3) {
+          const fillers = [" really", " actually", " basically", " pretty much", " just", " kind of"];
+          const words = sentence.split(' ');
+          const insertPos = Math.floor(words.length / 2);
+          words.splice(insertPos, 0, fillers[Math.floor(Math.random() * fillers.length)]);
+          sentence = words.join(' ');
         }
       }
       
