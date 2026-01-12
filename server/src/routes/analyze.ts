@@ -17,7 +17,7 @@ const router = express.Router();
  * POST /api/analyze
  * Analyze text for AI-generated content detection
  */
-router.post('/analyze', async (req: Request, res: Response) => {
+router.post('/', async (req: Request, res: Response) => {
   try {
     const { text }: AnalyzeRequest = req.body;
     

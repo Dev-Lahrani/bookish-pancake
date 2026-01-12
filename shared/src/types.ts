@@ -57,6 +57,102 @@ export interface HumanizationResult {
   statistics: HumanizationStatistics;
 }
 
+// Advanced Humanization Types
+export interface AdvancedHumanizationResult {
+  finalText: string;
+  iterations: number;
+  initialScore: number;
+  finalScore: number;
+  changesApplied: string[];
+  confidence: 'UNDETECTABLE' | 'LOW_RISK' | 'MODERATE_RISK';
+}
+
+// Advanced Analysis Types
+export type RiskLevelAdvanced = 'HUMAN' | 'LIKELY_HUMAN' | 'UNCERTAIN' | 'LIKELY_AI' | 'AI';
+
+export interface AdvancedAnalysisMetrics {
+  perplexity: {
+    overallPerplexity: number;
+    sentenceScores: Array<{ sentence: string; perplexity: number; flag: boolean }>;
+    suspiciousSentenceCount: number;
+    riskScore: number;
+  };
+  burstiness: {
+    coefficientOfVariation: number;
+    paragraphLengthVariance: number;
+    sentenceLengthVariance: number;
+    complexityVariance: number;
+    riskScore: number;
+    patterns: string[];
+  };
+  syntactic: {
+    averageTreeDepth: number;
+    treeDepthVariance: number;
+    subordinateClauseRatio: number;
+    parallelismScore: number;
+    fragmentRatio: number;
+    riskScore: number;
+    patterns: string[];
+  };
+  coherence: {
+    averageCoherence: number;
+    coherenceVariance: number;
+    smoothTransitionRatio: number;
+    riskScore: number;
+    patterns: string[];
+  };
+  aiPhrases: {
+    totalPhraseCount: number;
+    byCategory: { [key: string]: { count: number; examples: string[] } };
+    riskScore: number;
+  };
+  structural: {
+    detectedPatterns: string[];
+    riskScore: number;
+    severity: 'low' | 'medium' | 'high';
+  };
+  vocabulary: {
+    typeTokenRatio: number;
+    thesaurusRatio: number;
+    formalityScore: number;
+    riskScore: number;
+    patterns: string[];
+  };
+  punctuation: {
+    exclamationRatio: number;
+    emDashRatio: number;
+    semicolonRatio: number;
+    ellipsisRatio: number;
+    riskScore: number;
+    patterns: string[];
+  };
+  consistency: {
+    pronounAmbiguity: number;
+    tenseMaintenance: number;
+    voiceConsistency: number;
+    povShifts: number;
+    riskScore: number;
+    patterns: string[];
+  };
+  depth: {
+    specificityRatio: number;
+    exampleCount: number;
+    opinionStrength: number;
+    balanceScore: number;
+    riskScore: number;
+    patterns: string[];
+  };
+}
+
+export interface AdvancedAnalysisResult {
+  overallScore: number;
+  confidence: number;
+  riskLevel: RiskLevelAdvanced;
+  allMetrics: AdvancedAnalysisMetrics;
+  evidenceHighlights: string[];
+  recommendations: string[];
+}
+
 // API Request/Response Types
 export interface AnalyzeRequest {
   text: string;

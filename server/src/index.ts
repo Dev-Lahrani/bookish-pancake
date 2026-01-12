@@ -10,6 +10,8 @@ import fs from 'fs';
 import rateLimit from 'express-rate-limit';
 import analyzeRoutes from './routes/analyze';
 import humanizeRoutes from './routes/humanize';
+import advancedAnalyzeRoutes from './routes/advancedAnalyze';
+import advancedHumanizeRoutes from './routes/advancedHumanize';
 
 // Load environment variables from root .env file
 // Try multiple paths to support both ts-node dev and compiled dist
@@ -69,8 +71,10 @@ app.get('/health', (req, res) => {
 });
 
 // API Routes
-app.use('/api', analyzeRoutes);
-app.use('/api', humanizeRoutes);
+app.use('/api/analyze', analyzeRoutes);
+app.use('/api/humanize', humanizeRoutes);
+app.use('/api/analyze-advanced', advancedAnalyzeRoutes);
+app.use('/api/humanize-advanced', advancedHumanizeRoutes);
 
 // 404 handler
 app.use((req, res) => {

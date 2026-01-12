@@ -20,7 +20,7 @@ const router = express.Router();
  * POST /api/humanize
  * Humanize AI-generated text
  */
-router.post('/humanize', async (req: Request, res: Response) => {
+router.post('/', async (req: Request, res: Response) => {
   try {
     const { text, options }: HumanizeRequest = req.body;
     
