@@ -37,11 +37,17 @@ export async function extractTextFromPDF(filePath: string): Promise<ParsedPDFCon
 
     // Try to use pdf-parse if available
     try {
-      // Dynamic import to avoid hard dependency
-      // @ts-ignore - pdf-parse is optional
-      const pdfParse = await import('pdf-parse');
+      // Dynamic import to avoid hard dependency  
+      let pdfParseModule: any;
+      try {
+        // @ts-ignore - pdf-parse is optional
+        pdfParseModule = require('pdf-parse');
+      } catch (e) {
+        // pdf-parse not available, will use fallback
+        throw new Error('pdf-parse not available');
+      }
       const dataBuffer = fs.readFileSync(filePath);
-      const data = await pdfParse.default(dataBuffer);
+      const data = await pdfParseModule.default ? pdfParseModule.default(dataBuffer) : pdfParseModule(dataBuffer);
 
       // Extract and clean text
       let extractedText = '';
