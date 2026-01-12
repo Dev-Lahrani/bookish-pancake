@@ -91,8 +91,8 @@ async function humanizeWithAnthropic(prompt: string): Promise<string> {
   if (!anthropic) {
     throw new Error('Anthropic client not initialized');
   }
-  
-  const response = await anthropic.messages.create({
+
+  const response = await (anthropic as any).messages.create({
     model: 'claude-3-sonnet-20240229',
     max_tokens: 4000,
     temperature: 0.9,
@@ -103,18 +103,18 @@ async function humanizeWithAnthropic(prompt: string): Promise<string> {
       }
     ]
   });
-  
+
   const content = response.content[0];
   if (content.type !== 'text') {
     throw new Error('Unexpected response type from Anthropic');
   }
-  
+
   const humanizedText = content.text.trim();
-  
+
   if (!humanizedText) {
     throw new Error('No response from Anthropic');
   }
-  
+
   return humanizedText;
 }
 
@@ -173,7 +173,7 @@ ${text}`;
       
       response = completion.choices[0]?.message?.content || '{}';
     } else if (service === 'anthropic' && anthropic) {
-      const completion = await anthropic.messages.create({
+      const completion = await (anthropic as any).messages.create({
         model: 'claude-3-sonnet-20240229',
         max_tokens: 500,
         temperature: 0.3,

@@ -8,7 +8,7 @@ import {
   findSuspiciousSections,
   generateRecommendations
 } from '../utils/analyzer';
-import { AnalyzeRequest, AnalyzeResponse } from '../../../shared/src/types';
+import { AnalyzeRequest, AnalyzeResponse } from '@shared/types';
 import { analyzeWithAI } from '../services/aiService';
 
 const router = express.Router();

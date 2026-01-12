@@ -3,7 +3,7 @@
  * Builds prompts and processes text to make AI-generated content sound more human
  */
 
-import { HumanizationOptions } from '../../../shared/src/types';
+import { HumanizationOptions } from '@shared/types';
 
 /**
  * Build a detailed humanization prompt for AI API

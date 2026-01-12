@@ -5,7 +5,7 @@
 
 import natural from 'natural';
 import compromise from 'compromise';
-import { AnalysisMetrics, SuspiciousSection, DetectedPattern } from '../../../shared/src/types';
+import { AnalysisMetrics, SuspiciousSection, DetectedPattern } from '@shared/types';
 
 const tokenizer = new natural.WordTokenizer();
 const sentenceTokenizer = new natural.SentenceTokenizer();
@@ -94,7 +94,7 @@ export function calculateSentenceUniformity(text: string): number {
 export function calculatePerplexity(text: string): number {
   const words = tokenizer.tokenize(text.toLowerCase());
   
-  if (words.length < 10) {
+  if (!words || words.length < 10) {
     return 0;
   }
 
@@ -227,7 +227,7 @@ export function detectAIPhrases(text: string): DetectedPattern[] {
 export function calculateVocabularyDiversity(text: string): number {
   const words = tokenizer.tokenize(text.toLowerCase());
   
-  if (words.length < 50) {
+  if (!words || words.length < 50) {
     return 50; // Not enough data
   }
 
@@ -266,7 +266,7 @@ export function calculateReadability(text: string): number {
   const sentences = sentenceTokenizer.tokenize(text);
   const words = tokenizer.tokenize(text);
   
-  if (sentences.length === 0 || words.length === 0) {
+  if (sentences.length === 0 || !words || words.length === 0) {
     return 50;
   }
 

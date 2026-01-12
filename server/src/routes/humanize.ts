@@ -3,7 +3,7 @@
  */
 
 import express, { Request, Response } from 'express';
-import { HumanizeRequest, HumanizeResponse } from '../../../shared/src/types';
+import { HumanizeRequest, HumanizeResponse } from '@shared/types';
 import {
   buildHumanizationPrompt,
   compareTexts,

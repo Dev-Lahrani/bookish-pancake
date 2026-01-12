@@ -2,8 +2,8 @@
  * Main App Component - Enhanced with error boundaries and server connection handling
  */
 
-import React, { useState, useEffect } from 'react';
-import { Moon, Sun, FileSearch, Wand2, Github, AlertCircle, CheckCircle2, Wifi } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Moon, Sun, FileSearch, Wand2, Github, AlertCircle, Wifi } from 'lucide-react';
 import PlagiarismChecker from './components/PlagiarismChecker';
 import Humanizer from './components/Humanizer';
 import { checkHealth, ServerHealth } from './services/api';
