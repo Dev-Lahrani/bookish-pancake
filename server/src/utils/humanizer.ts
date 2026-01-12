@@ -269,3 +269,110 @@ export function validateHumanizedText(original: string, humanized: string): {
   
   return { isValid: true };
 }
+
+/**
+ * Local fallback humanizer - works without API calls
+ * Applies text transformations to make AI-generated text more human-like
+ * @param text - Text to humanize
+ * @param options - Humanization options
+ * @returns Humanized text
+ */
+export function localHumanize(text: string, options: HumanizationOptions): string {
+  let result = text;
+  const intensity = options.intensity === 'aggressive' ? 3 : options.intensity === 'medium' ? 2 : 1;
+  
+  // Common AI phrases to replace
+  const aiPhrases: { [key: string]: string[] } = {
+    "it's important to note that": ["note that", "it's worth noting", "worth mentioning"],
+    "in today's digital age": ["nowadays", "in modern times", "these days"],
+    "the landscape of": ["the world of", "the field of", "in"],
+    "realm of": ["world of", "area of"],
+    "furthermore": ["also", "plus", "beyond that"],
+    "moreover": ["additionally", "also", "what's more"],
+    "delve into": ["explore", "look at", "examine"],
+    "significantly": ["a lot", "greatly", "substantially"],
+    "indicates that": ["shows", "means", "suggests"],
+    "prior to": ["before"],
+    "utilize": ["use"],
+    "facilitate": ["help with", "enable"],
+  };
+  
+  // Replace AI phrases
+  for (const [phrase, replacements] of Object.entries(aiPhrases)) {
+    const regex = new RegExp(`\\b${phrase}\\b`, 'gi');
+    if (regex.test(result)) {
+      const replacement = replacements[Math.floor(Math.random() * replacements.length)];
+      result = result.replace(regex, replacement);
+    }
+  }
+  
+  // Add contractions randomly
+  if (intensity >= 1) {
+    const contractions: { [key: string]: string } = {
+      ' is ': ' is ',
+      " is not ": " isn't ",
+      " do not ": " don't ",
+      " does not ": " doesn't ",
+      " can not ": " can't ",
+      " will not ": " won't ",
+      " it is ": " it's ",
+      " that is ": " that's ",
+      " we have ": " we've ",
+      " have not ": " haven't ",
+    };
+    
+    for (const [original, contracted] of Object.entries(contractions)) {
+      if (Math.random() > 0.3) {
+        const regex = new RegExp(original.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+        result = result.replace(regex, contracted);
+      }
+    }
+  }
+  
+  // Vary sentence structure for higher intensities
+  if (intensity >= 2) {
+    const sentences = result.split(/([.!?])\s+/);
+    let varied = '';
+    
+    for (let i = 0; i < sentences.length; i += 2) {
+      let sentence = sentences[i].trim();
+      
+      if (sentence.length > 0) {
+        // Randomly move words around for variation
+        if (Math.random() > 0.4 && sentence.split(' ').length > 5) {
+          const words = sentence.split(' ');
+          // Move first word to end occasionally
+          if (Math.random() > 0.5) {
+            sentence = words.slice(1).join(' ') + ', ' + words[0];
+          }
+        }
+        
+        // Add occasional filler words
+        if (Math.random() > 0.6) {
+          const fillers = ["I think", "Honestly,", "Actually,", "You know,"];
+          sentence = fillers[Math.floor(Math.random() * fillers.length)] + ' ' + sentence;
+        }
+      }
+      
+      varied += sentence;
+      if (i + 1 < sentences.length) {
+        varied += sentences[i + 1] + ' ';
+      }
+    }
+    
+    result = varied.trim();
+  }
+  
+  // Add more personality for aggressive mode
+  if (intensity === 3 && options.addPersonalTouches) {
+    const personalMarkers = [" In my view, ", " I'd say ", " If you ask me, ", " Frankly, "];
+    const sentences = result.split(/(?<=[.!?])\s+/);
+    if (sentences.length > 2) {
+      const insertPoint = Math.floor(sentences.length / 2);
+      sentences.splice(insertPoint, 0, personalMarkers[Math.floor(Math.random() * personalMarkers.length)]);
+      result = sentences.join(' ');
+    }
+  }
+  
+  return result;
+}

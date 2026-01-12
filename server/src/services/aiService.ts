@@ -5,47 +5,76 @@
 
 import OpenAI from 'openai';
 import Anthropic from '@anthropic-ai/sdk';
+import { localHumanize } from '../utils/humanizer';
 
-// Initialize clients
-const openai = process.env.OPENAI_API_KEY 
-  ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-  : null;
+// Lazy initialize clients to ensure env vars are loaded
+let openai: OpenAI | null = null;
+let anthropic: Anthropic | null = null;
+let initialized = false;
 
-const anthropic = process.env.ANTHROPIC_API_KEY
-  ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-  : null;
+function initializeClients() {
+  if (!initialized) {
+    openai = process.env.OPENAI_API_KEY 
+      ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+      : null;
+
+    anthropic = process.env.ANTHROPIC_API_KEY
+      ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+      : null;
+    
+    initialized = true;
+  }
+}
 
 /**
  * Determine which AI service to use
+ * Prefer Anthropic first as it may be more responsive
  */
 function getAvailableService(): 'openai' | 'anthropic' | null {
-  if (openai) return 'openai';
+  initializeClients();
   if (anthropic) return 'anthropic';
+  if (openai) return 'openai';
   return null;
 }
 
 /**
- * Humanize text using AI API
+ * Humanize text using AI API with timeout and fallback
  * @param text - Text to humanize
  * @param prompt - Full humanization prompt
+ * @param options - Humanization options
  * @returns Humanized text
  */
-export async function humanizeWithAI(text: string, prompt: string): Promise<string> {
+export async function humanizeWithAI(
+  text: string,
+  prompt: string,
+  options?: any
+): Promise<string> {
   const service = getAvailableService();
   
+  // If no API service, use local humanizer
   if (!service) {
-    throw new Error('No AI API key configured. Please set OPENAI_API_KEY or ANTHROPIC_API_KEY in .env file');
+    console.log('Using local humanizer (no API keys configured)');
+    return localHumanize(text, options || { tone: 'professional', intensity: 'medium' });
   }
   
   try {
-    if (service === 'openai') {
-      return await humanizeWithOpenAI(prompt);
-    } else {
-      return await humanizeWithAnthropic(prompt);
-    }
+    // Add timeout of 30 seconds
+    const timeoutPromise = new Promise<string>((_, reject) => {
+      setTimeout(() => reject(new Error('API request timeout after 30 seconds')), 30000);
+    });
+    
+    const apiPromise =
+      service === 'openai'
+        ? humanizeWithOpenAI(prompt)
+        : humanizeWithAnthropic(prompt);
+    
+    return await Promise.race([apiPromise, timeoutPromise]);
   } catch (error: any) {
     console.error('AI humanization error:', error);
-    throw new Error(`AI service error: ${error.message}`);
+    
+    // Fallback to local humanizer on API error
+    console.log('Falling back to local humanizer due to API error');
+    return localHumanize(text, options || { tone: 'professional', intensity: 'medium' });
   }
 }
 
@@ -58,7 +87,7 @@ async function humanizeWithOpenAI(prompt: string): Promise<string> {
   }
   
   const response = await openai.chat.completions.create({
-    model: 'gpt-4-turbo-preview',
+    model: 'gpt-4-turbo',
     messages: [
       {
         role: 'system',
@@ -156,7 +185,7 @@ ${text}`;
     
     if (service === 'openai' && openai) {
       const completion = await openai.chat.completions.create({
-        model: 'gpt-4-turbo-preview',
+        model: 'gpt-4-turbo',
         messages: [
           {
             role: 'system',

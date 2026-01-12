@@ -56,8 +56,8 @@ router.post('/humanize', async (req: Request, res: Response) => {
     // Build humanization prompt
     const prompt = buildHumanizationPrompt(text, options);
     
-    // Call AI service to humanize
-    const humanizedText = await humanizeWithAI(text, prompt);
+    // Call AI service to humanize (with fallback to local humanizer)
+    const humanizedText = await humanizeWithAI(text, prompt, options);
     
     // Validate the humanized text
     const validation = validateHumanizedText(text, humanizedText);

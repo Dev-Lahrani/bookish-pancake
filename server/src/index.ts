@@ -5,12 +5,27 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
+import fs from 'fs';
 import rateLimit from 'express-rate-limit';
 import analyzeRoutes from './routes/analyze';
 import humanizeRoutes from './routes/humanize';
 
-// Load environment variables
-dotenv.config();
+// Load environment variables from root .env file
+// Try multiple paths to support both ts-node dev and compiled dist
+const envPaths = [
+  path.resolve(__dirname, '../../.env'),  // From src folder
+  path.resolve(__dirname, '../.env'),     // From dist folder
+  path.resolve(process.cwd(), '.env'),    // From current working directory
+];
+
+for (const envPath of envPaths) {
+  if (fs.existsSync(envPath)) {
+    dotenv.config({ path: envPath });
+    console.log(`✓ Loaded .env from: ${envPath}`);
+    break;
+  }
+}
 
 const app = express();
 const PORT = process.env.PORT || 3001;
