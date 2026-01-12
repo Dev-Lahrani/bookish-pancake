@@ -178,7 +178,110 @@ export async function checkHealth(): Promise<ServerHealth> {
 }
 
 /**
- * Clear analysis cache
+ * Analyze PDF file for plagiarism
+ */
+export async function analyzePDF(formData: FormData): Promise<AnalysisResult> {
+  try {
+    const startTime = Date.now();
+    const response = await axios.post<any>(`${API_BASE_URL}/api/analyze-pdf`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+      timeout: 120000,
+    });
+    const processingTime = Date.now() - startTime;
+
+    // Extract analysis from response
+    return {
+      ...response.data.data.analysisResults,
+      processingTime,
+    };
+  } catch (error: any) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    const errorMsg = error.response?.data?.error || 'PDF analysis failed';
+    throw new Error(errorMsg);
+  }
+}
+
+/**
+ * Analyze multiple texts in batch
+ */
+export async function batchAnalyzeTexts(texts: string[]): Promise<any> {
+  try {
+    const startTime = Date.now();
+    const response = await api.post('/api/batch-analyze', { texts });
+    const processingTime = Date.now() - startTime;
+
+    return {
+      ...response.data.data,
+      processingTime,
+    };
+  } catch (error: any) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    const errorMsg = error.response?.data?.error || 'Batch analysis failed';
+    throw new Error(errorMsg);
+  }
+}
+
+/**
+ * Get analysis history
+ */
+export async function getAnalysisHistory(limit = 50, offset = 0): Promise<any> {
+  try {
+    const response = await api.get('/api/history', {
+      params: { limit, offset },
+    });
+    return response.data.data;
+  } catch (error: any) {
+    const errorMsg = error.response?.data?.error || 'Failed to fetch history';
+    throw new Error(errorMsg);
+  }
+}
+
+/**
+ * Get specific analysis by ID
+ */
+export async function getAnalysisById(id: string): Promise<any> {
+  try {
+    const response = await api.get(`/api/history/${id}`);
+    return response.data.data;
+  } catch (error: any) {
+    const errorMsg = error.response?.data?.error || 'Analysis not found';
+    throw new Error(errorMsg);
+  }
+}
+
+/**
+ * Delete analysis record
+ */
+export async function deleteAnalysis(id: string): Promise<any> {
+  try {
+    const response = await api.delete(`/api/history/${id}`);
+    return response.data.data;
+  } catch (error: any) {
+    const errorMsg = error.response?.data?.error || 'Failed to delete analysis';
+    throw new Error(errorMsg);
+  }
+}
+
+/**
+ * Get usage statistics
+ */
+export async function getStatistics(): Promise<any> {
+  try {
+    const response = await api.get('/api/statistics');
+    return response.data.data;
+  } catch (error: any) {
+    const errorMsg = error.response?.data?.error || 'Failed to fetch statistics';
+    throw new Error(errorMsg);
+  }
+}
+
+/**
  */
 export function clearCache(): void {
   analysisCache.clear();
