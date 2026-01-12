@@ -1,0 +1,30 @@
+{
+  "name": "ai-plagiarism-detector-humanizer",
+  "version": "1.0.0",
+  "description": "Full-stack AI Plagiarism Checker and Humanizer",
+  "private": true,
+  "workspaces": [
+    "client",
+    "server",
+    "shared"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "npm run dev --workspace=server",
+    "dev:client": "npm run dev --workspace=client",
+    "build": "npm run build --workspaces",
+    "start": "npm start --workspace=server"
+  },
+  "keywords": [
+    "ai",
+    "plagiarism",
+    "detector",
+    "humanizer",
+    "nlp"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
