@@ -14,15 +14,31 @@ let initialized = false;
 
 function initializeClients() {
   if (!initialized) {
-    openai = process.env.OPENAI_API_KEY 
-      ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-      : null;
+    // Only initialize OpenAI if key is valid (not placeholder)
+    const openaiKey = process.env.OPENAI_API_KEY;
+    if (openaiKey && !openaiKey.includes('your_') && openaiKey.length > 10) {
+      try {
+        openai = new OpenAI({ apiKey: openaiKey });
+      } catch (error) {
+        console.error('Failed to initialize OpenAI:', error);
+        openai = null;
+      }
+    }
 
-    anthropic = process.env.ANTHROPIC_API_KEY
-      ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-      : null;
+    // Only initialize Anthropic if key is valid (not placeholder)
+    const anthropicKey = process.env.ANTHROPIC_API_KEY;
+    if (anthropicKey && !anthropicKey.includes('your_') && anthropicKey.length > 10) {
+      try {
+        anthropic = new Anthropic({ apiKey: anthropicKey });
+      } catch (error) {
+        console.error('Failed to initialize Anthropic:', error);
+        anthropic = null;
+      }
+    }
     
     initialized = true;
+    console.log(`[AI Service] OpenAI: ${openai ? '✓ Configured' : '✗ Not configured'}`);
+    console.log(`[AI Service] Anthropic: ${anthropic ? '✓ Configured' : '✗ Not configured'}`);
   }
 }
 
@@ -87,7 +103,7 @@ async function humanizeWithOpenAI(prompt: string): Promise<string> {
   }
   
   const response = await openai.chat.completions.create({
-    model: 'gpt-4-turbo',
+    model: 'gpt-4-turbo-preview',
     messages: [
       {
         role: 'system',

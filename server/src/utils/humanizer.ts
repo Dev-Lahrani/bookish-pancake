@@ -263,8 +263,12 @@ export function validateHumanizedText(original: string, humanized: string): {
   
   // Check for minimum changes
   const { changePercentage } = compareTexts(original, humanized);
-  if (changePercentage < 10) {
-    return { isValid: false, reason: 'Not enough changes made' };
+  
+  // For very short texts, be more lenient
+  const minChangeRequired = original.length < 100 ? 5 : 8;
+  
+  if (changePercentage < minChangeRequired) {
+    return { isValid: false, reason: `Not enough changes made (${changePercentage.toFixed(1)}% < ${minChangeRequired}%)` };
   }
   
   return { isValid: true };
@@ -281,96 +285,86 @@ export function localHumanize(text: string, options: HumanizationOptions): strin
   let result = text;
   const intensity = options.intensity === 'aggressive' ? 3 : options.intensity === 'medium' ? 2 : 1;
   
-  // Common AI phrases to replace
+  // Phase 1: Replace common AI phrases
   const aiPhrases: { [key: string]: string[] } = {
-    "it's important to note that": ["note that", "it's worth noting", "worth mentioning"],
-    "in today's digital age": ["nowadays", "in modern times", "these days"],
-    "the landscape of": ["the world of", "the field of", "in"],
+    "it's important to note that": ["note that", "it's worth noting"],
+    "in today's digital age": ["nowadays", "these days", "in modern times"],
+    "the landscape of": ["the world of", "in"],
     "realm of": ["world of", "area of"],
-    "furthermore": ["also", "plus", "beyond that"],
-    "moreover": ["additionally", "also", "what's more"],
-    "delve into": ["explore", "look at", "examine"],
-    "significantly": ["a lot", "greatly", "substantially"],
-    "indicates that": ["shows", "means", "suggests"],
-    "prior to": ["before"],
+    "furthermore": ["also", "plus"],
+    "moreover": ["additionally", "also"],
+    "delve into": ["explore", "look at"],
+    "significantly": ["a lot", "greatly"],
+    "indicates that": ["shows", "means"],
+    "utilizes": ["uses"],
     "utilize": ["use"],
     "facilitate": ["help with", "enable"],
   };
   
-  // Replace AI phrases
   for (const [phrase, replacements] of Object.entries(aiPhrases)) {
-    const regex = new RegExp(`\\b${phrase}\\b`, 'gi');
+    const regex = new RegExp(phrase, 'gi');
     if (regex.test(result)) {
       const replacement = replacements[Math.floor(Math.random() * replacements.length)];
       result = result.replace(regex, replacement);
     }
   }
   
-  // Add contractions randomly
-  if (intensity >= 1) {
-    const contractions: { [key: string]: string } = {
-      ' is ': ' is ',
-      " is not ": " isn't ",
-      " do not ": " don't ",
-      " does not ": " doesn't ",
-      " can not ": " can't ",
-      " will not ": " won't ",
-      " it is ": " it's ",
-      " that is ": " that's ",
-      " we have ": " we've ",
-      " have not ": " haven't ",
-    };
-    
-    for (const [original, contracted] of Object.entries(contractions)) {
-      if (Math.random() > 0.3) {
-        const regex = new RegExp(original.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
-        result = result.replace(regex, contracted);
-      }
-    }
-  }
+  // Phase 2: Add contractions
+  result = result.replace(/ is not /gi, " isn't ");
+  result = result.replace(/ do not /gi, " don't ");
+  result = result.replace(/ does not /gi, " doesn't ");
+  result = result.replace(/ can not /gi, " can't ");
+  result = result.replace(/ will not /gi, " won't ");
+  result = result.replace(/ have not /gi, " haven't ");
+  result = result.replace(/ it is /gi, " it's ");
+  result = result.replace(/ that is /gi, " that's ");
+  result = result.replace(/ we have /gi, " we've ");
   
-  // Vary sentence structure for higher intensities
+  // Phase 3: Break up long sentences and add variety
   if (intensity >= 2) {
     const sentences = result.split(/([.!?])\s+/);
-    let varied = '';
+    let modified: string[] = [];
     
     for (let i = 0; i < sentences.length; i += 2) {
       let sentence = sentences[i].trim();
       
-      if (sentence.length > 0) {
-        // Randomly move words around for variation
-        if (Math.random() > 0.4 && sentence.split(' ').length > 5) {
-          const words = sentence.split(' ');
-          // Move first word to end occasionally
-          if (Math.random() > 0.5) {
-            sentence = words.slice(1).join(' ') + ', ' + words[0];
-          }
+      if (sentence.length > 20) {
+        // Randomly add transition words at start
+        if (Math.random() > 0.5) {
+          const transitions = ["Well, ", "Look, ", "Actually, ", "Honestly, ", "You see, "];
+          sentence = transitions[Math.floor(Math.random() * transitions.length)] + sentence;
         }
         
-        // Add occasional filler words
+        // Sometimes move adverbs around
         if (Math.random() > 0.6) {
-          const fillers = ["I think", "Honestly,", "Actually,", "You know,"];
-          sentence = fillers[Math.floor(Math.random() * fillers.length)] + ' ' + sentence;
+          sentence = sentence.replace(/^(([A-Z][a-z]+\s)+)/, (match) => {
+            const words = match.trim().split(' ');
+            if (words.length > 2) {
+              return words.slice(1).join(' ') + ' ' + words[0] + ', ';
+            }
+            return match;
+          });
         }
       }
       
-      varied += sentence;
+      modified.push(sentence);
       if (i + 1 < sentences.length) {
-        varied += sentences[i + 1] + ' ';
+        modified.push(sentences[i + 1]);
       }
     }
     
-    result = varied.trim();
+    result = modified.join(' ').replace(/\s+/g, ' ').trim();
   }
   
-  // Add more personality for aggressive mode
+  // Phase 4: Add personality markers for aggressive mode
   if (intensity === 3 && options.addPersonalTouches) {
-    const personalMarkers = [" In my view, ", " I'd say ", " If you ask me, ", " Frankly, "];
-    const sentences = result.split(/(?<=[.!?])\s+/);
-    if (sentences.length > 2) {
-      const insertPoint = Math.floor(sentences.length / 2);
-      sentences.splice(insertPoint, 0, personalMarkers[Math.floor(Math.random() * personalMarkers.length)]);
-      result = sentences.join(' ');
+    const sentences = result.split(/([.!?])\s+/);
+    if (sentences.length > 4) {
+      const personality = [" Personally, I think ", " In my opinion, ", " What I've found is that "];
+      const randomPersonality = personality[Math.floor(Math.random() * personality.length)];
+      const insertPoint = Math.floor(sentences.length / 3);
+      sentences.splice(insertPoint, 0, randomPersonality);
+      result = sentences.join(' ').replace(/\s+/g, ' ').trim();
     }
   }
   
